@@ -1,20 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ChatInterface } from "@/components/debate/chat-interface";
 import { DIFFICULTY_LEVELS, OPPONENT_PERSONAS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
-
-function formatDate(value: string): string {
-  return new Date(value).toLocaleString();
-}
+import type { DebateMessage } from "@/types/database";
 
 export default async function DebateSessionPage({
   params,
@@ -31,89 +20,69 @@ export default async function DebateSessionPage({
     redirect("/signin?error=Please%20sign%20in%20to%20view%20a%20session.");
   }
 
-  const sessionResult = await supabase
+  const { data: session } = await supabase
     .from("debate_sessions")
     .select("*")
     .eq("id", sessionId)
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (!sessionResult.data) {
+  if (!session) {
     notFound();
   }
 
-  const session = sessionResult.data;
   const persona =
-    OPPONENT_PERSONAS.find((item) => item.id === session.opponent_persona_id) ??
-    null;
+    OPPONENT_PERSONAS.find((p) => p.id === session.opponent_persona_id) ?? null;
   const difficulty =
-    DIFFICULTY_LEVELS.find((item) => item.id === session.difficulty) ?? null;
+    DIFFICULTY_LEVELS.find((d) => d.id === session.difficulty) ?? null;
 
   const familyResult = session.family_id
     ? await supabase
         .from("families")
-        .select("name, description")
+        .select("name")
         .eq("id", session.family_id)
         .maybeSingle()
     : null;
 
+  const { data: existingMessages } = await supabase
+    .from("debate_messages")
+    .select("id, role, content")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true })
+    .returns<Pick<DebateMessage, "id" | "role" | "content">[]>();
+
+  const chatMessages = (existingMessages ?? []).map((m) => ({
+    id: m.id,
+    role: m.role as "user" | "assistant",
+    content: m.content,
+  }));
+
   return (
-    <div className="min-h-screen bg-background px-4 py-8">
-      <main className="mx-auto w-full max-w-3xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Debate Session</CardTitle>
-            <CardDescription>
-              Session ID: <span className="font-mono text-xs">{session.id}</span>
-            </CardDescription>
-          </CardHeader>
+    <div className="flex h-screen flex-col bg-background">
+      {/* Top nav */}
+      <nav className="flex items-center justify-between border-b px-4 py-2">
+        <Link
+          href="/dashboard"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          &larr; Dashboard
+        </Link>
+        <span className="text-xs font-mono text-muted-foreground hidden sm:inline">
+          {sessionId.slice(0, 8)}…
+        </span>
+      </nav>
 
-          <CardContent className="space-y-4 text-sm">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-md border p-3">
-                <p className="text-muted-foreground">Topic family</p>
-                <p className="mt-1 font-medium">
-                  {familyResult?.data?.name ?? "General"}
-                </p>
-              </div>
-              <div className="rounded-md border p-3">
-                <p className="text-muted-foreground">Opponent persona</p>
-                <p className="mt-1 font-medium">
-                  {persona?.name ?? session.opponent_persona_id ?? "Unknown"}
-                </p>
-              </div>
-              <div className="rounded-md border p-3">
-                <p className="text-muted-foreground">Difficulty</p>
-                <p className="mt-1 font-medium">
-                  {difficulty?.name ?? session.difficulty}
-                </p>
-              </div>
-              <div className="rounded-md border p-3">
-                <p className="text-muted-foreground">Started</p>
-                <p className="mt-1 font-medium">{formatDate(session.started_at)}</p>
-              </div>
-            </div>
-
-            <div className="rounded-md border p-4">
-              <h2 className="font-medium">Next implementation target</h2>
-              <p className="mt-2 text-muted-foreground">
-                This placeholder page confirms Session 2 wiring: auth gate, session
-                creation, and per-user session loading. Next we can build the live
-                debate interface and scoring loop here.
-              </p>
-            </div>
-          </CardContent>
-
-          <CardFooter className="flex gap-3">
-            <Button asChild>
-              <Link href="/dashboard">Back to dashboard</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/">Home</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      </main>
+      {/* Chat area fills remaining height */}
+      <div className="flex-1 overflow-hidden">
+        <ChatInterface
+          sessionId={sessionId}
+          personaName={persona?.name ?? "Opponent"}
+          familyName={familyResult?.data?.name ?? "General"}
+          difficulty={difficulty?.name ?? session.difficulty}
+          initialMessages={chatMessages}
+          isEnded={!!session.ended_at}
+        />
+      </div>
     </div>
   );
 }

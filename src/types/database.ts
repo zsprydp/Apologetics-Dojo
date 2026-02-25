@@ -62,6 +62,14 @@ export interface SkillScore {
   updated_at: string;
 }
 
+export interface DebateMessage {
+  id: string;
+  session_id: string;
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+}
+
 export interface LearningTrack {
   id: string;
   name: string;
@@ -95,6 +103,15 @@ export interface Database {
         Row: Family;
         Insert: Omit<Family, "id" | "created_at" | "updated_at"> & { id?: string };
         Update: Partial<Family>;
+        Relationships: [];
+      };
+      debate_messages: {
+        Row: DebateMessage;
+        Insert: Omit<DebateMessage, "id" | "created_at"> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<DebateMessage>;
         Relationships: [];
       };
       debate_sessions: {
