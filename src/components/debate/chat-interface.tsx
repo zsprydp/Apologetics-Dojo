@@ -48,16 +48,22 @@ export function ChatInterface({
     [sessionId]
   );
 
-  const { messages, sendMessage, status } = useChat({
+  const [chatError, setChatError] = useState<string | null>(null);
+
+  const { messages, sendMessage, status, error } = useChat({
     transport,
     messages: initialMessages.map((m) => ({
       id: m.id,
       role: m.role as "user" | "assistant",
       parts: [{ type: "text" as const, text: m.content }],
     })),
+    onError: (err) => {
+      setChatError(err.message || "Failed to get AI response. Check your API key.");
+    },
   });
 
   const isLoading = status === "streaming" || status === "submitted";
+  const displayError = chatError || (error?.message ?? null);
 
   const triggerOpening = useCallback(() => {
     if (!hasRequestedOpening.current) {
@@ -156,7 +162,24 @@ export function ChatInterface({
         ref={scrollRef}
         className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
       >
-        {visibleMessages.length === 0 && isLoading && (
+        {displayError && (
+          <div className="mx-auto max-w-md rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <p className="font-medium">Unable to reach AI opponent</p>
+            <p className="mt-1 text-xs">{displayError}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setChatError(null);
+                hasRequestedOpening.current = false;
+              }}
+              className="mt-2 text-xs underline hover:no-underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {visibleMessages.length === 0 && isLoading && !displayError && (
           <div className="flex justify-center py-12">
             <p className="text-sm text-muted-foreground animate-pulse">
               {personaName} is preparing an opening statement…
