@@ -28,6 +28,10 @@ The app requires a running Supabase instance. For local dev, use the Supabase CL
    SUPABASE_SERVICE_ROLE_KEY=<SERVICE_ROLE_KEY from step 3>
    ```
 
+### OpenAI (required for AI debate)
+
+The debate chat feature requires an OpenAI API key. Add `OPENAI_API_KEY` to `.env.local`. The app uses `gpt-4o-mini` via the Vercel AI SDK (`ai` + `@ai-sdk/openai` + `@ai-sdk/react`).
+
 ### Gotchas
 
 - Docker in this Cloud VM environment requires `fuse-overlayfs` storage driver and `iptables-legacy`. The Docker daemon config at `/etc/docker/daemon.json` must set `"storage-driver": "fuse-overlayfs"`.
