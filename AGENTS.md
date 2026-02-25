@@ -39,3 +39,5 @@ The debate chat feature requires an OpenAI API key. Add `OPENAI_API_KEY` to `.en
 - The `supabase/config.toml` is committed in the repo; `supabase init` is not needed.
 - Email confirmation is disabled in local Supabase (`enable_confirmations = false` in config.toml), so signup works immediately without email verification.
 - `.env.local` is gitignored and must be created per environment.
+- After a `supabase db reset`, all user accounts are wiped — you must re-signup.
+- When killing the dev server, always verify the `next-server` process is gone (`netstat -tlnp | grep 3000` or `lsof -i:3000`) before restarting; stale processes cause port conflicts and `.next/dev/lock` errors.
