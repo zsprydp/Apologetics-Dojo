@@ -48,3 +48,27 @@ export const THEOLOGICAL_GUARDRAILS = {
 } as const;
 
 export type GuardrailKey = keyof typeof THEOLOGICAL_GUARDRAILS;
+
+export const LEARNING_TRACK_CURRICULUM: Record<
+  string,
+  { familySlug: string; difficulty: DifficultyId; persona: OpponentPersonaId }[]
+> = {
+  foundations: [
+    { familySlug: "existence-of-god", difficulty: "beginner", persona: "skeptic" },
+    { familySlug: "reliability-of-scripture", difficulty: "beginner", persona: "skeptic" },
+    { familySlug: "resurrection-of-jesus", difficulty: "beginner", persona: "skeptic" },
+    { familySlug: "morality-and-meaning", difficulty: "beginner", persona: "relativist" },
+  ],
+  "core-objections": [
+    { familySlug: "problem-of-evil", difficulty: "intermediate", persona: "sufferer" },
+    { familySlug: "existence-of-god", difficulty: "intermediate", persona: "atheist" },
+    { familySlug: "religious-pluralism", difficulty: "intermediate", persona: "relativist" },
+    { familySlug: "reliability-of-scripture", difficulty: "intermediate", persona: "intellectual" },
+  ],
+  "advanced-engagement": [
+    { familySlug: "existence-of-god", difficulty: "advanced", persona: "intellectual" },
+    { familySlug: "problem-of-evil", difficulty: "advanced", persona: "atheist" },
+    { familySlug: "morality-and-meaning", difficulty: "expert", persona: "scientist" },
+    { familySlug: "resurrection-of-jesus", difficulty: "expert", persona: "intellectual" },
+  ],
+};
