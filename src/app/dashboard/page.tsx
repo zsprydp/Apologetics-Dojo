@@ -124,7 +124,7 @@ export default async function DashboardPage({
 
   const recentSessionsResult = await supabase
     .from("debate_sessions")
-    .select("id, family_id, difficulty, opponent_persona_id, started_at, outcome")
+    .select("id, family_id, difficulty, opponent_persona_id, started_at, ended_at, outcome")
     .eq("user_id", user.id)
     .order("started_at", { ascending: false })
     .limit(5);
@@ -329,7 +329,12 @@ export default async function DashboardPage({
           <Card>
             <CardHeader>
               <CardTitle>Recent sessions</CardTitle>
-              <CardDescription>Latest 5 debate attempts</CardDescription>
+              <CardDescription className="flex items-center justify-between">
+                <span>Latest 5 debate attempts</span>
+                <Link href="/sessions" className="text-xs underline hover:no-underline">
+                  View all
+                </Link>
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {recentSessions.length === 0 ? (
@@ -342,19 +347,33 @@ export default async function DashboardPage({
                   const persona = session.opponent_persona_id
                     ? personaById.get(session.opponent_persona_id)?.name ?? session.opponent_persona_id
                     : "Unknown persona";
+                  let pts: number | null = null;
+                  try {
+                    const parsed = JSON.parse(session.outcome ?? "");
+                    if (typeof parsed.totalPoints === "number") pts = parsed.totalPoints;
+                  } catch { /* ignore */ }
 
                   return (
                     <Link
                       key={session.id}
                       href={`/debate/${session.id}`}
-                      className="block rounded-md border p-3 hover:bg-accent/50"
+                      className="flex items-center justify-between rounded-md border p-3 hover:bg-accent/50"
                     >
-                      <p className="text-sm font-medium">
-                        {familyName} · {persona}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {session.difficulty} · {formatDate(session.started_at)}
-                      </p>
+                      <div>
+                        <p className="text-sm font-medium">
+                          {familyName} · {persona}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {session.difficulty} · {formatDate(session.started_at)}
+                        </p>
+                      </div>
+                      {pts !== null ? (
+                        <span className="shrink-0 text-sm font-semibold">{pts} pts</span>
+                      ) : !session.ended_at ? (
+                        <span className="shrink-0 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+                          In progress
+                        </span>
+                      ) : null}
                     </Link>
                   );
                 })
