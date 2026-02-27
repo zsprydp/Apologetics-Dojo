@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { sendWelcomeEmail } from "@/lib/email/send";
 
 function asString(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value : "";
@@ -52,6 +53,8 @@ export async function signUp(formData: FormData) {
   }
 
   if (data.session) {
+    const name = displayName ?? email.split("@")[0];
+    sendWelcomeEmail(email, name).catch(() => {});
     redirect("/dashboard");
   }
 
