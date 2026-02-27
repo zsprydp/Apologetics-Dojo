@@ -5,6 +5,7 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageBubble } from "@/components/debate/message-bubble";
+import { ScoreCard, type ScoreData } from "@/components/debate/score-card";
 
 interface ChatInterfaceProps {
   sessionId: string;
@@ -13,6 +14,7 @@ interface ChatInterfaceProps {
   difficulty: string;
   initialMessages: { id: string; role: "user" | "assistant"; content: string }[];
   isEnded: boolean;
+  savedScore?: ScoreData | null;
 }
 
 function getMessageText(message: UIMessage): string {
@@ -31,12 +33,14 @@ export function ChatInterface({
   difficulty,
   initialMessages,
   isEnded,
+  savedScore,
 }: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState("");
   const [ended, setEnded] = useState(isEnded);
   const [endingSession, setEndingSession] = useState(false);
+  const [scoreData, setScoreData] = useState<ScoreData | null>(savedScore ?? null);
   const hasRequestedOpening = useRef(false);
 
   const transport = useMemo(
@@ -104,7 +108,11 @@ export function ChatInterface({
         body: JSON.stringify({ sessionId }),
       });
       if (res.ok) {
+        const data = await res.json();
         setEnded(true);
+        if (data.scored && data.score) {
+          setScoreData(data.score as ScoreData);
+        }
       }
     } finally {
       setEndingSession(false);
@@ -147,12 +155,12 @@ export function ChatInterface({
             onClick={handleEndSession}
             disabled={endingSession || isLoading}
           >
-            {endingSession ? "Ending…" : "End debate"}
+            {endingSession ? "Scoring your debate…" : "End debate"}
           </Button>
         )}
         {ended && (
           <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-            Session ended
+            {scoreData ? `${scoreData.totalPoints} pts earned` : "Session ended"}
           </span>
         )}
       </div>
@@ -217,8 +225,20 @@ export function ChatInterface({
           )}
       </div>
 
+      {/* Score card overlay */}
+      {scoreData && (
+        <div className="border-t px-4 py-4 overflow-y-auto max-h-[50vh]">
+          <ScoreCard score={scoreData} />
+          <div className="mt-3 text-center">
+            <a href="/dashboard" className="text-sm underline text-muted-foreground hover:text-foreground">
+              Return to dashboard
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Input area */}
-      {!ended ? (
+      {!ended && !endingSession ? (
         <div className="border-t px-4 py-3">
           <div className="flex gap-2">
             <textarea
@@ -244,7 +264,13 @@ export function ChatInterface({
             Press Enter to send, Shift+Enter for new line
           </p>
         </div>
-      ) : (
+      ) : endingSession ? (
+        <div className="border-t px-4 py-6 text-center">
+          <p className="text-sm text-muted-foreground animate-pulse">
+            Evaluating your debate performance…
+          </p>
+        </div>
+      ) : !scoreData ? (
         <div className="border-t px-4 py-3 text-center">
           <p className="text-sm text-muted-foreground">
             This debate has ended.{" "}
@@ -253,7 +279,7 @@ export function ChatInterface({
             </a>
           </p>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

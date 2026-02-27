@@ -4,6 +4,18 @@ import { ChatInterface } from "@/components/debate/chat-interface";
 import { DIFFICULTY_LEVELS, OPPONENT_PERSONAS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import type { DebateMessage } from "@/types/database";
+import type { ScoreData } from "@/components/debate/score-card";
+
+function parseScore(outcome: string | null): ScoreData | null {
+  if (!outcome) return null;
+  try {
+    const parsed = JSON.parse(outcome);
+    if (typeof parsed.totalPoints === "number") return parsed as ScoreData;
+  } catch {
+    /* not JSON — old-format or empty */
+  }
+  return null;
+}
 
 export default async function DebateSessionPage({
   params,
@@ -57,9 +69,10 @@ export default async function DebateSessionPage({
     content: m.content,
   }));
 
+  const savedScore = parseScore(session.outcome);
+
   return (
     <div className="flex h-screen flex-col bg-background">
-      {/* Top nav */}
       <nav className="flex items-center justify-between border-b px-4 py-2">
         <Link
           href="/dashboard"
@@ -72,7 +85,6 @@ export default async function DebateSessionPage({
         </span>
       </nav>
 
-      {/* Chat area fills remaining height */}
       <div className="flex-1 overflow-hidden">
         <ChatInterface
           sessionId={sessionId}
@@ -81,6 +93,7 @@ export default async function DebateSessionPage({
           difficulty={difficulty?.name ?? session.difficulty}
           initialMessages={chatMessages}
           isEnded={!!session.ended_at}
+          savedScore={savedScore}
         />
       </div>
     </div>
