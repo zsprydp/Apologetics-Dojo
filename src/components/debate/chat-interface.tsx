@@ -41,6 +41,11 @@ export function ChatInterface({
   const [ended, setEnded] = useState(isEnded);
   const [endingSession, setEndingSession] = useState(false);
   const [scoreData, setScoreData] = useState<ScoreData | null>(savedScore ?? null);
+  const [beltPromotion, setBeltPromotion] = useState<{
+    name: string;
+    colorHex: string;
+    level: number;
+  } | null>(null);
   const hasRequestedOpening = useRef(false);
 
   const transport = useMemo(
@@ -112,6 +117,9 @@ export function ChatInterface({
         setEnded(true);
         if (data.scored && data.score) {
           setScoreData(data.score as ScoreData);
+          if (data.beltPromotion) {
+            setBeltPromotion(data.beltPromotion);
+          }
         }
       }
     } finally {
@@ -228,7 +236,7 @@ export function ChatInterface({
       {/* Score card overlay */}
       {scoreData && (
         <div className="border-t px-4 py-4 overflow-y-auto max-h-[50vh]">
-          <ScoreCard score={scoreData} />
+          <ScoreCard score={scoreData} beltPromotion={beltPromotion} />
           <div className="mt-3 text-center">
             <a href="/dashboard" className="text-sm underline text-muted-foreground hover:text-foreground">
               Return to dashboard

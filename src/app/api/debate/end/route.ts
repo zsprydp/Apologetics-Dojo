@@ -92,6 +92,9 @@ export async function POST(req: Request) {
     })
     .eq("id", sessionId);
 
+  let beltPromotion: { name: string; colorHex: string; level: number } | null =
+    null;
+
   if (session.family_id) {
     const { data: existing } = await supabase
       .from("skill_scores")
@@ -117,27 +120,35 @@ export async function POST(req: Request) {
 
     const { data: belts } = await supabase
       .from("belt_config")
-      .select("id, level, min_score_threshold")
+      .select("id, name, level, min_score_threshold, color_hex")
       .order("level", { ascending: false });
 
     if (belts) {
-      const newBelt = belts.find((b) => newScore >= b.min_score_threshold);
-      if (newBelt) {
+      const earnedBelt = belts.find((b) => newScore >= b.min_score_threshold);
+      if (earnedBelt) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("current_belt_id")
           .eq("id", user.id)
           .maybeSingle();
 
-        const currentBelt = belts.find(
+        const previousBelt = belts.find(
           (b) => b.id === profile?.current_belt_id
         );
 
-        if (!currentBelt || newBelt.level > currentBelt.level) {
+        if (!previousBelt || earnedBelt.level > previousBelt.level) {
           await supabase
             .from("profiles")
-            .update({ current_belt_id: newBelt.id })
+            .update({ current_belt_id: earnedBelt.id })
             .eq("id", user.id);
+
+          if (earnedBelt.level > 1) {
+            beltPromotion = {
+              name: earnedBelt.name,
+              colorHex: earnedBelt.color_hex ?? "#facc15",
+              level: earnedBelt.level,
+            };
+          }
         }
       }
     }
@@ -146,16 +157,7 @@ export async function POST(req: Request) {
   return Response.json({
     ok: true,
     scored: true,
-    score: {
-      totalPoints: scoring.totalPoints,
-      basePoints: scoring.basePoints,
-      difficultyMultiplier: scoring.difficultyMultiplier,
-      argument_quality: scoring.raw.argument_quality,
-      logical_coherence: scoring.raw.logical_coherence,
-      scripture_usage: scoring.raw.scripture_usage,
-      respectful_tone: scoring.raw.respectful_tone,
-      feedback: scoring.raw.feedback,
-      summary: scoring.raw.summary,
-    },
+    score: scorePayload,
+    beltPromotion,
   });
 }

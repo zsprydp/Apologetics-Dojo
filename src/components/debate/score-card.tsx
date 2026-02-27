@@ -32,7 +32,19 @@ function ScoreBar({ label, value, max }: { label: string; value: number; max: nu
   );
 }
 
-export function ScoreCard({ score }: { score: ScoreData }) {
+interface BeltPromotion {
+  name: string;
+  colorHex: string;
+  level: number;
+}
+
+export function ScoreCard({
+  score,
+  beltPromotion,
+}: {
+  score: ScoreData;
+  beltPromotion?: BeltPromotion | null;
+}) {
   return (
     <Card className="mx-auto max-w-lg">
       <CardHeader className="pb-3 text-center">
@@ -45,6 +57,17 @@ export function ScoreCard({ score }: { score: ScoreData }) {
           <p className="text-xs text-muted-foreground">
             Base {score.basePoints} × {score.difficultyMultiplier} difficulty bonus
           </p>
+        )}
+        {beltPromotion && (
+          <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border-2 px-4 py-2" style={{ borderColor: beltPromotion.colorHex }}>
+            <div
+              className="h-6 w-6 rounded-full border"
+              style={{ backgroundColor: beltPromotion.colorHex }}
+            />
+            <span className="text-sm font-semibold">
+              Belt promoted to {beltPromotion.name}!
+            </span>
+          </div>
         )}
       </CardHeader>
       <CardContent className="space-y-4">

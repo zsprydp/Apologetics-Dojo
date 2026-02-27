@@ -133,6 +133,22 @@ export default async function DashboardPage({
   const personaById = new Map(OPPONENT_PERSONAS.map((persona) => [persona.id, persona]));
   const hasFamilies = families.length > 0;
 
+  const totalScore = skillScores.reduce((sum, s) => sum + s.score, 0);
+  const nextBelt = currentBelt
+    ? belts.find((b) => b.level === currentBelt.level + 1) ?? null
+    : belts[1] ?? null;
+  const currentThreshold = currentBelt?.min_score_threshold ?? 0;
+  const nextThreshold = nextBelt?.min_score_threshold ?? currentThreshold;
+  const progressPct =
+    nextThreshold > currentThreshold
+      ? Math.min(
+          100,
+          Math.round(
+            ((totalScore - currentThreshold) / (nextThreshold - currentThreshold)) * 100
+          )
+        )
+      : 100;
+
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -172,23 +188,55 @@ export default async function DashboardPage({
               <CardTitle>Profile</CardTitle>
               <CardDescription>Your current account status and rank</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="space-y-4 text-sm">
               <div className="flex justify-between gap-4">
                 <span className="text-muted-foreground">Display name</span>
                 <span className="font-medium">{profile?.display_name ?? "Not set"}</span>
               </div>
-              <div className="flex justify-between gap-4">
+              <div className="flex items-center justify-between gap-4">
                 <span className="text-muted-foreground">Current belt</span>
-                <span className="font-medium">
-                  {currentBelt ? `${currentBelt.name} (L${currentBelt.level})` : "Unranked"}
-                </span>
+                <div className="flex items-center gap-2">
+                  {currentBelt && (
+                    <div
+                      className="h-4 w-4 rounded-full border"
+                      style={{ backgroundColor: currentBelt.color_hex ?? "#f5f5f5" }}
+                    />
+                  )}
+                  <span className="font-medium">
+                    {currentBelt ? `${currentBelt.name} (L${currentBelt.level})` : "Unranked"}
+                  </span>
+                </div>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Next threshold</span>
-                <span className="font-medium">
-                  {currentBelt ? `${currentBelt.min_score_threshold} pts` : "n/a"}
-                </span>
+                <span className="text-muted-foreground">Total points</span>
+                <span className="font-medium">{totalScore} pts</span>
               </div>
+              {nextBelt && (
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Progress to {nextBelt.name}
+                    </span>
+                    <span className="font-medium">
+                      {totalScore} / {nextBelt.min_score_threshold}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-muted">
+                    <div
+                      className="h-2 rounded-full transition-all"
+                      style={{
+                        width: `${progressPct}%`,
+                        backgroundColor: nextBelt.color_hex ?? "#facc15",
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              {!nextBelt && currentBelt && currentBelt.level === 8 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Maximum rank achieved
+                </p>
+              )}
             </CardContent>
           </Card>
 
