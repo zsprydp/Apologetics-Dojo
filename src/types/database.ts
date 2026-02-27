@@ -26,6 +26,8 @@ export interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   current_belt_id: string | null;
+  stripe_customer_id: string | null;
+  stripe_plan: string;
   created_at: string;
   updated_at: string;
 }

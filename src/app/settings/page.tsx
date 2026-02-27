@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/server";
 import { updateProfile, updatePassword } from "@/app/actions/settings";
+import { getUserUsage } from "@/lib/billing/usage";
+import { PLANS } from "@/lib/billing/plans";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -43,6 +45,9 @@ export default async function SettingsPage({
     .select("display_name, avatar_url")
     .eq("id", user.id)
     .maybeSingle();
+
+  const usage = await getUserUsage(user.id);
+  const planInfo = PLANS[usage.plan];
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">
@@ -127,6 +132,44 @@ export default async function SettingsPage({
                 Update password
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Plan &amp; Usage</CardTitle>
+            <CardDescription>
+              Current plan: <span className="font-semibold">{planInfo.name}</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Sessions this month</span>
+              <span className="font-medium">
+                {usage.sessionsThisMonth}
+                {usage.limit !== Infinity ? ` / ${usage.limit}` : " (unlimited)"}
+              </span>
+            </div>
+            {usage.limit !== Infinity && (
+              <div className="h-2 w-full rounded-full bg-muted">
+                <div
+                  className="h-2 rounded-full bg-primary transition-all"
+                  style={{
+                    width: `${Math.min(100, (usage.sessionsThisMonth / usage.limit) * 100)}%`,
+                  }}
+                />
+              </div>
+            )}
+            <ul className="space-y-1 text-xs text-muted-foreground">
+              {planInfo.features.map((f) => (
+                <li key={f}>• {f}</li>
+              ))}
+            </ul>
+            {usage.plan === "free" && (
+              <p className="text-xs text-muted-foreground italic">
+                Upgrade to Pro for unlimited sessions and all difficulty levels. Stripe integration coming soon.
+              </p>
+            )}
           </CardContent>
         </Card>
 

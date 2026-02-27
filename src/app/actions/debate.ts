@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DIFFICULTY_LEVELS, OPPONENT_PERSONAS } from "@/lib/constants";
+import { getUserUsage } from "@/lib/billing/usage";
 
 function asString(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value : "";
@@ -41,6 +42,15 @@ export async function startDebateSession(formData: FormData) {
 
   if (!VALID_PERSONAS.has(opponentPersonaId)) {
     redirect("/dashboard?error=Invalid%20opponent%20persona%20selected.");
+  }
+
+  const usage = await getUserUsage(user.id);
+  if (!usage.canStartSession) {
+    redirect(
+      `/dashboard?error=${encoded(
+        `You've used all ${usage.limit} free sessions this month. Upgrade to Pro for unlimited debates.`
+      )}`
+    );
   }
 
   const { data, error } = await supabase
