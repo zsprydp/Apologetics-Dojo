@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { evaluateDebate, type ScoringResult } from "@/lib/ai/scoring";
-import { OPPONENT_PERSONAS, DIFFICULTY_LEVELS } from "@/lib/constants";
+import { OPPONENT_PERSONAS } from "@/lib/constants";
 import type { DifficultyId } from "@/lib/constants";
 
 export const maxDuration = 60;
