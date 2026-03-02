@@ -72,7 +72,7 @@ export default async function DebateSessionPage({
   const savedScore = parseScore(session.outcome);
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-dvh flex-col bg-background">
       <nav className="flex items-center justify-between border-b px-4 py-2">
         <Link
           href="/dashboard"

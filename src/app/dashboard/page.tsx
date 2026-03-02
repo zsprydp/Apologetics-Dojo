@@ -159,18 +159,21 @@ export default async function DashboardPage({
               Signed in as <span className="font-medium">{user.email}</span>
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/learn" className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <Link href="/learn" className="inline-flex items-center justify-center rounded-md border px-2.5 py-1.5 text-xs sm:text-sm font-medium hover:bg-accent">
               Learn
             </Link>
-            <Link href="/sessions" className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent">
+            <Link href="/groups" className="inline-flex items-center justify-center rounded-md border px-2.5 py-1.5 text-xs sm:text-sm font-medium hover:bg-accent">
+              Groups
+            </Link>
+            <Link href="/sessions" className="inline-flex items-center justify-center rounded-md border px-2.5 py-1.5 text-xs sm:text-sm font-medium hover:bg-accent">
               History
             </Link>
-            <Link href="/settings" className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent">
+            <Link href="/settings" className="inline-flex items-center justify-center rounded-md border px-2.5 py-1.5 text-xs sm:text-sm font-medium hover:bg-accent">
               Settings
             </Link>
             <form action={signOut}>
-              <Button type="submit" variant="outline" size="sm" className="h-9">
+              <Button type="submit" variant="outline" size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
                 Sign out
               </Button>
             </form>

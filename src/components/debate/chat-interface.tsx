@@ -236,7 +236,7 @@ export function ChatInterface({
       {/* Score card overlay */}
       {scoreData && (
         <div className="border-t px-4 py-4 overflow-y-auto max-h-[50vh]">
-          <ScoreCard score={scoreData} beltPromotion={beltPromotion} />
+          <ScoreCard score={scoreData} beltPromotion={beltPromotion} sessionId={sessionId} />
           <div className="mt-3 text-center">
             <a href="/dashboard" className="text-sm underline text-muted-foreground hover:text-foreground">
               Return to dashboard
@@ -257,18 +257,22 @@ export function ChatInterface({
               placeholder="Type your argument…"
               rows={2}
               disabled={isLoading || ended}
-              className="flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              className="flex-1 resize-none rounded-md border bg-background px-3 py-2 text-base sm:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             />
             <Button
               type="button"
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
-              className="self-end"
+              className="self-end h-10 w-10 sm:h-9 sm:w-auto sm:px-4"
             >
-              Send
+              <span className="hidden sm:inline">Send</span>
+              <svg className="h-4 w-4 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
             </Button>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground hidden sm:block">
             Press Enter to send, Shift+Enter for new line
           </p>
         </div>

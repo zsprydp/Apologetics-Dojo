@@ -41,10 +41,22 @@ interface BeltPromotion {
 export function ScoreCard({
   score,
   beltPromotion,
+  sessionId,
 }: {
   score: ScoreData;
   beltPromotion?: BeltPromotion | null;
+  sessionId?: string;
 }) {
+  function handleShare() {
+    const url = `${window.location.origin}/share/${sessionId}`;
+    const text = `I scored ${score.totalPoints} pts debating apologetics on Apologetics Dojo! Can you beat my score?`;
+    if (navigator.share) {
+      navigator.share({ title: "Apologetics Dojo", text, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(`${text}\n${url}`);
+      alert("Link copied to clipboard!");
+    }
+  }
   return (
     <Card className="mx-auto max-w-lg">
       <CardHeader className="pb-3 text-center">
@@ -86,6 +98,21 @@ export function ScoreCard({
         <p className="text-xs text-center text-muted-foreground italic">
           {score.summary}
         </p>
+
+        {sessionId && (
+          <button
+            type="button"
+            onClick={handleShare}
+            className="mx-auto flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium hover:bg-accent transition-colors"
+          >
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+              <polyline points="16 6 12 2 8 6" />
+              <line x1="12" y1="2" x2="12" y2="15" />
+            </svg>
+            Share result
+          </button>
+        )}
       </CardContent>
     </Card>
   );
